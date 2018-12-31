@@ -4,10 +4,17 @@ let request = require('supertest');
 let { app } = require('./../server');
 let { TodoModel } = require('./../models/todo');
 
+const todos = [
+	{
+		text: 'First created todo',
+	}, {
+		text: 'Second created todo',
+	}];
+
 beforeEach((done) => {
 	TodoModel.remove({}).then(() => {
-		done();
-	});
+		return TodoModel.insertMany(todos);
+	}).then(() => done());
 });
 
 describe('POST /todos', () => {
@@ -23,8 +30,8 @@ describe('POST /todos', () => {
 
 			//Check the database to see if the Todo was created
 			TodoModel.find().then((todos) => {
-				expect(todos.length).toBe(1);
-				expect(todos[0].text).toBe(text);
+				expect(todos.length).toBe(3);
+				expect(todos[2].text).toBe(text);
 				done();
 			}).catch((e) => {
 				done(e);
@@ -40,13 +47,19 @@ describe('POST /todos', () => {
 			}
 
 			TodoModel.find().then((todos) => {
-				expect(todos.length).toBe(0);
+				expect(todos.length).toBe(2);
 				done();
 			}).catch((e) => {
 				done(e);
 			});
 		});
 
+	});
+
+	it('should GET all todos', (done) => {
+		request(app).get('/todos').expect(200).expect((res) => {
+			expect(res.body.todos.length).toBe(2);
+		}).end(done);
 	});
 });
 

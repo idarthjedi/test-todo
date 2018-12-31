@@ -13,6 +13,7 @@ let app = express();
 //set up middleware
 app.use(bodyParser.json());
 
+//Route for creating a new todo
 app.post('/todos', (req, res) => {
 	//console.log(req.body);
 	let todo = new TodoModel({
@@ -26,9 +27,18 @@ app.post('/todos', (req, res) => {
 	});
 });
 
+//Route for getting all todos
+app.get('/todos', (req, res) => {
+	TodoModel.find().then((todos) => {
+		res.send({ todos });
+	}), (err) => {
+		res.status(400).send(err);
+	};
+});
+
 app.listen(3000, () => {
 	console.log(`Started on port ${port}`);
 });
 
-module.exports = {app};
+module.exports = { app };
 

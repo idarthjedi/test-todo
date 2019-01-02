@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 let expect = require('expect');
 let request = require('supertest');
 let { ObjectID } = require('mongodb');
@@ -106,6 +107,30 @@ describe('DELETE /todos/:id', () => {
 	it('should delete a todo by id', (done) => {
 		request(app).del(`/todos/${todos[0]._id}`).expect(200).expect((res) => {
 			expect(res.body.todo._id).toBe(todos[0]._id.toHexString());
-		}).end(done);
+		}).end((err, res) => {
+
+			if (err) {
+				return done(err);
+			}
+			//confirm the todo no longer exists in the database
+			TodoModel.findById(todos[0]._id).then((todo) => {
+				expect(todo).toNotExist();
+
+				done();
+			}).catch((e) => {
+				done(e);
+			});
+		});
 	});
+	/*	it('should delete a todo by id', (done) => {
+			request(app).del(`/todos/${todos[0]._id}`).expect(200).expect((res) => {
+				expect(res.body.todo._id).toBe(todos[0]._id.toHexString());
+			}).end((err, res) => {
+
+				//confirm the Todo has been deleted
+				TodoModel.findById(todos[0]._id).then((todo) => {
+					expect(todos.length).toBe(0);
+				}).end(done);
+			)
+		};*/
 });

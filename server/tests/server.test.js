@@ -91,6 +91,65 @@ describe('GET /todos/:id', () => {
 	});
 });
 
+describe('PATCH /todos/:id', () => {
+
+	it('should set completed=true and a completed date', (done) => {
+
+		request(app).
+			patch(`/todos/${todos[1]._id}`).
+			send({ completed: true, text: 'New todo text' }).
+			expect(200).
+			expect((res) => {
+				expect(res.body.todo._id).toBe(todos[1]._id.toHexString());
+				expect(res.body.todo.text).toBe('New todo text');
+				expect(res.body.todo.completed).toBeTruthy();
+				expect(res.body.todo.completedAt).toNotBe(null);
+			}).
+			end(done);
+	});
+
+	it('should clear completedAt when completed=false', (done) => {
+
+		request(app).
+			patch(`/todos/${todos[1]._id}`).
+			send({ completed: false }).
+			expect(200).
+			expect( (res) => {
+				expect(res.body.todo.completedAt).toNotExist();
+			}).
+			end(done);
+	});
+
+	// request(app).
+	// 	patch(`/todos/${todos[1]._id}`).
+	// 	send({ 'completed': true, 'text': 'New todo text' }).
+	// 	expect(200).
+	// 	expect((res) => {
+	// 		expect(res.body.todo._id).toBe(todos[1]._id.toHexString());
+	// 	}).end((err, res) => {
+	// 		if (err) {
+	// 			return done(err);
+	// 		}
+	//
+	// 		done();
+	// 	}).
+	// 	catch((err) => {
+	// 		done(err);
+	// 	});
+	//done();
+
+	it('should return 404 for ObjectID not found', (done) => {
+		request(app).
+			patch(`/todos/${new ObjectID().toHexString()}`).send({}).
+			expect(404).
+			end(done);
+	});
+
+	it('should return 404 for invalid ObjectID', (done) => {
+		request(app).patch('/todos/1234').expect(404).send({}).end(done);
+	});
+});
+
 describe('DELETE /todos/:id', () => {
 
 	it('should return 404 for an invalid ObjectID', (done) => {

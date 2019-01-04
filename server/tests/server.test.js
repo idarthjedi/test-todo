@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+/* eslint-disable no-console,no-unused-vars */
 let expect = require('expect');
 let request = require('supertest');
 let { ObjectID } = require('mongodb');

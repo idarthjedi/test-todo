@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+/* eslint-disable no-console,no-unused-vars */
 let _ = require('lodash');
 let express = require('express');
 let bodyParser = require('body-parser');

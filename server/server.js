@@ -17,6 +17,29 @@ let app = express();
 //set up middleware
 app.use(bodyParser.json());
 
+//<editor-fold desc="User methods">
+app.post('/users', (req, res) => {
+
+	let user = new UserModel(_.pick(req.body, ['email', 'password']));
+
+	user.save().then((user) => {
+		//res.send(doc);
+
+		let authToken = user.generateAuthToken();
+
+		//console.log(authToken);
+		return authToken;
+
+	}).then((token) => {
+		res.header('x-auth', token).send(user);
+	}).catch((err) => {
+		res.status(400).send(err);
+	});
+
+});
+//</editor-fold>
+
+//<editor-fold desc="Todo Methods">
 //Route for creating a new todo
 app.post('/todos', (req, res) => {
 	//console.log(req.body);
@@ -106,9 +129,10 @@ app.patch('/todos/:id', (req, res) => {
 
 	});
 });
+//</editor-fold>
 
 app.listen(port, () => {
-	console.log(`Started for env ${config.env} on port ${port}`);
+	console.log(`Started for env ${process.env.NODE_ENV} on port ${port}`);
 });
 
 module.exports = { app };

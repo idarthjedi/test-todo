@@ -1,4 +1,6 @@
 /* eslint-disable no-console,no-unused-vars */
+let config = require('./../config/config');
+
 let _ = require('lodash');
 let express = require('express');
 let bodyParser = require('body-parser');
@@ -100,12 +102,13 @@ app.patch('/todos/:id', (req, res) => {
 			res.send({ todo });
 
 		}).catch((e) => {
-			res.status(400).send();
-		});
+		res.status(400).send();
+
+	});
 });
 
-app.listen(3000, () => {
-	console.log(`Started on port ${port}`);
+app.listen(port, () => {
+	console.log(`Started for env ${config.env} on port ${port}`);
 });
 
 module.exports = { app };

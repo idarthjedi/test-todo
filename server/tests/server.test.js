@@ -1,26 +1,18 @@
 /* eslint-disable no-console,no-unused-vars */
-let expect = require('expect');
-let request = require('supertest');
-let { ObjectID } = require('mongodb');
+const expect = require('expect');
+const request = require('supertest');
+const { ObjectID } = require('mongodb');
 
-let { app } = require('./../server');
-let { TodoModel } = require('./../models/todo');
+const { app } = require('./../server');
+const { TodoModel } = require('./../models/todo');
+const { UserModel } = require('./../models/user');
 
-const todos = [
-	{
-		_id: new ObjectID(),
-		text: 'First created todo',
-	}, {
-		_id: new ObjectID(),
-		text: 'Second created todo',
-	}];
+const { todos, populateTodos, users, populateUsers } = require('./seed/seed');
 
-beforeEach((done) => {
-	TodoModel.remove({}).then(() => {
-		return TodoModel.insertMany(todos);
-	}).then(() => done());
-});
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
+//<editor-fold desc="Describe TODOS">
 describe('POST /todos', () => {
 	it('should create a new todo', (done) => {
 		let text = 'Test Todo Text';
@@ -114,7 +106,7 @@ describe('PATCH /todos/:id', () => {
 			patch(`/todos/${todos[1]._id}`).
 			send({ completed: false }).
 			expect(200).
-			expect( (res) => {
+			expect((res) => {
 				expect(res.body.todo.completedAt).toNotExist();
 			}).
 			end(done);
@@ -192,4 +184,78 @@ describe('DELETE /todos/:id', () => {
 				}).end(done);
 			)
 		};*/
+});
+//</editor-fold>
+
+describe('GET /users/me', () => {
+	it('should return user if authenticated', (done) => {
+
+		request(app).
+			get('/users/me').
+			set('x-auth', users[0].tokens[0].token).
+			expect(200).
+			expect((res) => {
+				expect(res.body._id).toBe(users[0]._id.toHexString());
+				expect(res.body.email).toBe(users[0].email);
+
+			}).end(done);
+	});
+
+	it('should return a 401 if not authenticated', (done) => {
+		request(app).get('/users/me').expect(401).expect((res) => {
+			expect(res.body).toEqual({});
+		}).end(done);
+	});
+});
+
+describe('POST /users/', () => {
+	it('should create a user', (done) => {
+
+		let email = 'test@example.com';
+		let password = 'testPassw0rd!';
+
+		request(app).
+			post('/users').
+			send({ email, password }).
+			expect(200).
+			expect((res) => {
+				expect(res.headers['x-auth']).toExist();
+				expect(res.body._id).toExist();
+				expect(res.body.email).toBe(email);
+			}).
+			end(done);
+	});
+
+
+	it('should throw validation errors', (done) => {
+
+		let email = 'testexample.com';
+		let password = 't0rd!';
+
+		request(app).
+			post('/users').
+			send({ email, password }).
+			expect(400).
+			end(done);
+	});
+
+	it('should enforce email uniqueness', (done) => {
+
+		let email = 'jediah@example.com';
+		let password = 'testPassw0rd!';
+
+		request(app).
+			post('/users').
+			send({ email, password }).
+			expect(400).
+			end((err) => {
+				if (err) {
+					return done(err);
+				}
+				else {
+					return done();
+				}
+
+			});
+	});
 });

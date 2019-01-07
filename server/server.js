@@ -9,6 +9,7 @@ const { ObjectID } = require('mongodb');
 let { mongoose } = require('./db/mongoose');
 let { UserModel } = require('./models/user');
 let { TodoModel } = require('./models/todo');
+let {authenticate} = require('./../middleware/authenticate');
 
 let port = process.env.PORT || 3000;
 
@@ -24,7 +25,7 @@ app.post('/users', (req, res) => {
 
 	user.save().then((user) => {
 		//res.send(doc);
-
+		//console.log(user);
 		let authToken = user.generateAuthToken();
 
 		//console.log(authToken);
@@ -36,6 +37,10 @@ app.post('/users', (req, res) => {
 		res.status(400).send(err);
 	});
 
+});
+
+app.get('/users/me', authenticate, (req, res) => {
+	res.send(req.user);
 });
 //</editor-fold>
 
@@ -125,9 +130,9 @@ app.patch('/todos/:id', (req, res) => {
 			res.send({ todo });
 
 		}).catch((e) => {
-		res.status(400).send();
+			res.status(400).send();
 
-	});
+		});
 });
 //</editor-fold>
 
